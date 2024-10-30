@@ -1,0 +1,184 @@
+\documentclass{article}
+\usepackage[margin=1in]{geometry} 
+\usepackage{amsmath,amsthm,amssymb,amsfonts, fancyhdr, color, comment, graphicx, environ}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage[shortlabels]{enumitem}
+\usepackage{indentfirst}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=blue,
+}
+
+
+\usepackage{ucs} 
+\usepackage[utf8x]{inputenc} % Включаем поддержку UTF8  
+\usepackage[russian]{babel}  % Включаем пакет для поддержки русского
+\usepackage[T1]{fontenc}
+
+\pagestyle{fancy}
+
+\newenvironment{problem}[2][Problem]
+    { \begin{mdframed}[backgroundcolor=gray!20] \textbf{#1 #2} \\}
+    {  \end{mdframed}}
+
+% Define solution environment
+\newenvironment{solution}{\textbf{Solution}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Fill in the appropriate information below
+\lhead{}
+%\rhead{Blockchain and cryptocurrencies} 
+\chead{\textbf{Hometask 4. Solution made by БАХЫШОВ ВАХИД}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+\begin{problem}{1}
+Consider a lending pool where one can deposit ETH and borrow USDC (exp. Compound or AAVE). A user
+deposits 100 ETH and uses those as collateral to borrow USDC. Let the initial price be 2000 USDC for 1
+ETH, and the liquidation threshold $l = 0.8$.
+The user borrows USDC with the loan to value ratio $\beta = 0.75$. Calculate the liquidation price for this
+position.
+\end{problem}
+
+Notation: $x$ the amount of ETH in collateral.
+
+In order to find the liquidation price, we need to calculate HF, for this we will use the formula:  $$HF = \frac{l * amount_{ETH} * price_{ETH}}{\beta * debt_{USD}},$$
+
+where $debt_{USD} = 100*2000, amount_{ETH} = 100$
+
+Then we solve this inequality(was in lecture 5): $$HF < 1$$
+
+but I will consider the case when $$HF \leq 1$$
+
+Let's solve this equation: $$\frac{0.8 * 100 * x}{100 * 2000 * 0.75} \leq 1$$
+
+after the calculations, we get: $$\frac{x}{1875} \leq 1,$$
+
+т.е $$x \leq 1875$$ 
+
+THE LIQUIDATION PRICE = $1875$
+
+\begin{problem}{2}
+Assume you have with 1 ETH in your wallet. How could you double your exposure to ETH dollar price using a lending market? Current ETH price is p, the liquidation threshold for ETH is l and max loan to value ratio for ETH is $\beta$. Provide a step by step instruction and calculate the resulting liquidation price. You may assume that all stablecoins are priced perfectly at $1$ dollar and the swap fees are negligible.
+\end{problem}
+
+The way to double ETH exposure: Берем flashloan на 1 ETH (по факту берем чуть больше 1 ETH из-за комиссий), депозируем в lending pool эти 2 ETH, берем займ (долг) в стейбле в размере 1 ETH, покупаем на них 1 ETH и возвращаем flashloan. Теперь lending pool будет депозит в размере 2 ETH -> x2 exposure
+
+Взяли в займ в flashloan ETH, вкладываем в pool 2 ETH, 1 ETH меняем на USDC и уже на них покупаем 1 ETH. Купленный ETH возвращаем в flashloan.
+
+$$HF = \frac{l*1*x}{p*1*0.5} = 1$$
+
+Т.е
+$$x = \frac{p}{2l}$$
+
+The liquidation condition: $$x = \frac{p}{2l}$$
+
+\begin{problem}{3}
+Derive the expression for the impermanent loss in a standard Uniswap V2 pool with the constant product rule $XY = K$. For convenience use the notation $\gamma = \frac{p_1}{p_0}$ for the relative price change from p0 to p1.
+\end{problem}
+
+Notation: $V_{pool}$ is the liquidity provider's assets value in the pool, $V_{hold}$ is the assets value outside of the pool but kept in the same proportion as in the pool initially. 
+
+$$XY = K P = \frac{X}{Y}, \gamma = \frac{P_1}{P_0}$$
+
+$$V{pool} = Y * P_1 + X * 1 = 2 \sqrt{K P_1}$$
+
+$$V{hold} = Y_0 * P_0 + X_0 * 1 = \sqrt{K P_0} + \frac{\sqrt{K} P_1}{\sqrt{P_0}} = \sqrt{K P_0}*(1 + \gamma)$$
+
+$$IL = \frac{V{pool}-V{hold}}{V{hold}} = \frac{2\sqrt{K P_1}-\sqrt{K P_0}*(1 + \gamma)}{\sqrt{K P_0}*(1 + \gamma)} = \frac{\sqrt{K P_0}(2\sqrt{\gamma}- (1+\gamma))}{\sqrt{K P_0}*(1+\gamma)} = \frac{2\sqrt{\gamma}}{1+\gamma} - 1 $$
+
+THE EXPRESSION FOR IMPERMANENT LOSS: $$IL = \frac{2\sqrt{\gamma}}{1+\gamma} - 1 $$
+
+\begin{problem}{4}
+Consider a Uniswap V2 pool with two tokens, ETH and USDC. Let X and Y be the token amounts. The initial price is $p0 = 2000$ USDC for 1 ETH. Let a trader swap 100 ETH for USDC in the pool, the swap price is p1. Let’s call $\frac{(p_0−p_1)}{p0}$ the price slippage in the pool for this swap. Calculate the token reserves in the pool to keep the slippage below $0.1$ percent for such swap.
+\end{problem}
+
+Notation: price slippage $\alpha = 0.1\%$, $y = 100$ ETH. The trader sends $y$ ETH into the pool and gets $x$ USDC back from the pool, $p_0$ is the price in the pool before swap, $p = \frac{x}{y}$ is the swap price. 
+
+let's denote $\Delta$ - how much USDC a market participant will receive. also from the condition we get: $2000x = y$
+As a result, we get a system of 2 equations:
+\begin{equation}
+\begin{cases}
+    xy = (x + 100)(y - \Delta) \\
+    2000x = y
+\end{cases}
+\end{equation}
+
+Since price slippage should not be more than 0.1, then $\Delta$ = 100*2000*0.999 = 199800
+
+\begin{equation}
+\begin{cases}
+    xy = (x + 100)(y - 199800) \\
+    2000x = y
+\end{cases}
+\end{equation}
+
+After solving the system we get x, y:
+
+\begin{equation}
+\begin{cases}
+    x = 99900 \\
+    y = 199800000
+\end{cases}
+\end{equation}
+
+TOKEN RESERVES: x = 99900, y = 199800000
+
+\begin{problem}{5}
+Consider a Uniswap V3 liquidity pool with concentrated liquidity and two tokens, ETH and USDC. Let the
+initial price in the pool be p. Let a liquidity provider deposit the assets into the price range [p1, p2], and let
+L be the liquidity parameter in the chosed price range. Assume no other liquidity providers in the range.
+Derive the liquidity provider’s position value as a function of p.
+\end{problem}
+
+$$(x + \frac{L}{\sqrt{p_2}})(y + L\sqrt{p_1}) = L^2$$
+
+Пусть
+
+\begin{equation}
+\begin{cases}
+    x_1 = x + \frac{L}{\sqrt{p_2}} \\
+    y_1 = y + L\sqrt{p_1}
+\end{cases}
+\end{equation}
+
+Тогда
+\begin{equation}
+\begin{cases}
+    x_1y_1 = L^2 \\
+    x_1 \ge 0 \\
+    y_1 \ge 0
+\end{cases}
+\end{equation}
+
+\begin{equation}
+\begin{cases}
+    x_1 = \frac{L}{\sqrt{P}} \\
+    y_1 = L\sqrt{P}
+\end{cases}
+\end{equation}
+
+\begin{equation}
+\begin{cases}
+    x = x_1 - \frac{L}{p_2} = L(\frac{1}{\sqrt{P}} - \frac{1}{\sqrt{p_2}}) \\
+    y = y_1 - L\sqrt{p_1} = L(\sqrt{P} - \sqrt{p_1})
+\end{cases}
+\end{equation}
+
+$$V = y + xP = L(\sqrt{P} - \sqrt{p_1}) + LP(\frac{1}{\sqrt{P}} - \frac{1}{\sqrt{p_2}}) = L(\sqrt{P} - \sqrt{p_1}) + L({\sqrt{P}} - \frac{P}{\sqrt{p_2}}) $$
+
+Т.е
+$$V = 2L\sqrt{P} - L(\sqrt{p_1} + \frac{P}{\sqrt{p_2}}) $$
+
+The liquidity provider's position value: 
+$$V = 2L\sqrt{P} - L(\sqrt{p_1} + \frac{P}{\sqrt{p_2}}) $$
+
+or $$V = L(\sqrt{P} - \sqrt{p_1}) + LP(\frac{1}{\sqrt{P}} - \frac{1}{\sqrt{p_2}})$$
+
+\end{document}
